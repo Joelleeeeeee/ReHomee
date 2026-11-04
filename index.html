@@ -102,6 +102,17 @@ body.mode-official{--role-wash:#fff;--role-soft:#fff;--role-edge:#e4e8ed;backgro
 .ai-demo-callout{border:1px solid #e3e7ee;border-radius:8px;padding:13px 15px;margin-top:13px;background:#f7fafd}
 .modal .modalback{margin-top:17px;display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border:1px solid #dce2e9;border-radius:7px;background:#fff;color:#0058a3;font-size:calc(12px * var(--font-scale));font-weight:800}
 @media(max-width:720px){.back-strip{padding-top:10px}.ai-demo-price{font-size:calc(25px * var(--font-scale))}}
+
+/* 家具狀況複選：群組分明、視覺留白、手機自適應 */
+.furniture-condition .issue-group{margin-top:13px}
+.furniture-condition .issue-group-title{display:block;color:#627386;font-size:calc(12px * var(--font-scale));font-weight:800;margin:0 0 7px}
+.furniture-condition .issue-none{margin-top:7px}
+.furniture-condition .issuechoices{display:flex;gap:8px;flex-wrap:wrap}
+.furniture-condition .issue-none button{border:1px solid #d6dbe1;background:#fff;padding:8px 11px;border-radius:6px;font-size:calc(12px * var(--font-scale))}
+.furniture-condition .issuechoices button.active,.furniture-condition .issue-none button.active{background:#e5f0fa;border-color:var(--blue);color:var(--blue);font-weight:900}
+.furniture-condition .issuechoices button.active::before,.furniture-condition .issue-none button.active::before{content:'✓ ';font-weight:900}
+.furniture-condition .issue-other{margin-top:10px}
+.furniture-condition .condition-hint{margin:9px 0 0}
 </style>
 </head>
 <body>
@@ -126,7 +137,7 @@ const initialCases=[{id:'RH-DEMO-001',type:'trade',title:'KALLAX 收納層架',r
 function loadSaved(){try{const o=JSON.parse(localStorage.getItem('rehome_v2_saved')||'{}');return {products:Array.isArray(o.products)?o.products:templateProducts,cases:Array.isArray(o.cases)?o.cases:initialCases,favs:Array.isArray(o.favs)?o.favs:[],watches:Array.isArray(o.watches)?o.watches:[],messages:o.messages&&typeof o.messages==='object'?o.messages:{}}}catch{return {products:templateProducts,cases:initialCases,favs:[],watches:[],messages:{}}}}
 const saved=loadSaved();
 function getFontChoice(){try{const value=localStorage.getItem('rehome_v2_font');return ['small','medium','large'].includes(value)?value:'medium'}catch{return 'medium'}}
-const state={role:null,page:'entry',fontSize:getFontChoice(),products:saved.products,cases:saved.cases,favs:saved.favs,watches:saved.watches,messages:saved.messages,chatChannel:'peer',officialDrafts:[],vision:null,labelVision:null,visionBusy:false,demoMode:false,visionRunId:0,history:[],filters:{query:'',type:'all',grade:'all',max:'all'},selectedProduct:101,selectedCase:null,draft:{name:'',model:'BILLY',type:'收納',original:2990,years:3,grade:'',issue:'',city:'臺中市',area:'西屯區',img:''},analysis:null,demoPrice:null,modal:null,searchNotif:false,payout:'voucher',mobile:false};
+const state={role:null,page:'entry',fontSize:getFontChoice(),products:saved.products,cases:saved.cases,favs:saved.favs,watches:saved.watches,messages:saved.messages,chatChannel:'peer',officialDrafts:[],vision:null,labelVision:null,visionBusy:false,demoMode:false,visionRunId:0,history:[],filters:{query:'',type:'all',grade:'all',max:'all'},selectedProduct:101,selectedCase:null,draft:{name:'',model:'BILLY',type:'收納',original:2990,years:3,grade:'',issues:[],issueOther:'',city:'臺中市',area:'西屯區',img:''},analysis:null,demoPrice:null,modal:null,searchNotif:false,payout:'voucher',mobile:false};
 function save(){try{localStorage.setItem('rehome_v2_saved',JSON.stringify({products:state.products,cases:state.cases,favs:state.favs,watches:state.watches,messages:state.messages}))}catch{}}
 function pageGo(page){if(state.page!==page&&state.page!=='entry')state.history.push(state.page);state.page=page;state.modal=null;state.mobile=false;render();window.scrollTo({top:0,behavior:'instant'})}
 function setRole(role){state.history=[];state.role=role;pageGo(role==='buyer'?'buyerHome':'sellerHome')}
@@ -148,10 +159,45 @@ function marketProducts(){const f=state.filters;return state.products.filter(p=>
 function mapSVG(){return `<svg viewBox="0 0 420 350" preserveAspectRatio="xMidYMid slice" aria-label="台中示意地圖"><rect width="420" height="350" fill="#e8eee8"/><g fill="#dbe7d8"><path d="M0 0h80l-32 116-48 30Z"/><path d="M290 0h130v150l-84-26Z"/><path d="M0 240h100v110H0Z"/></g><path d="M-30 65 450 192M25 355 250-20M-30 246 450 51M150-20 135 380M300-20 307 380M-30 322 450 312" stroke="#fff" stroke-width="14" fill="none"/><path d="M-30 65 450 192M25 355 250-20M-30 246 450 51M150-20 135 380M300-20 307 380M-30 322 450 312" stroke="#d2dbd4" stroke-width="1" fill="none"/><path d="M-15 176Q70 138 183 198T450 182" fill="none" stroke="#b9d3dd" stroke-width="15"/><g fill="#7c9582" font-family="serif" font-size="15"><text x="47" y="48">西屯區</text><text x="280" y="49">北屯區</text><text x="151" y="174">西區</text><text x="165" y="286">南屯區</text></g></svg>`}
 function browse(){const ps=marketProducts();return `<div class="wrap"><div class="page-title"><span class="eyebrow">EXPLORE · SECOND-HAND</span><h1>探索附近二手家具</h1><p class="sub">商品清單、價格與位置皆為示範資料，並非完整 IKEA 商品庫；地圖僅顯示鄰近地標。</p></div><div class="filters"><input id="q" placeholder="搜尋家具、型號或區域（例如 KALLAX）" value="${e(state.filters.query)}" aria-label="搜尋家具"><select id="type"><option value="all">所有類別</option>${IKEA_CATEGORIES.map(x=>`<option ${state.filters.type===x?'selected':''}>${x}</option>`).join('')}</select><select id="grade"><option value="all">所有狀態</option>${['A','B'].map(x=>`<option ${state.filters.grade===x?'selected':''} value="${x}">${x} 級家具</option>`).join('')}</select><select class="lastfilter" id="max"><option value="all">不限預算</option>${[1000,3000,5000,10000].map(x=>`<option value="${x}" ${state.filters.max===String(x)?'selected':''}>${money(x)} 以下</option>`).join('')}</select>${btn('清除篩選','clear','outline sm')}</div><div class="marketlayout"><div><div class="between" style="margin-bottom:13px"><b>找到 ${ps.length} 件家具</b><button class="minor-link" data-act="watch">${ic('bell',16)} 設定上架通知</button></div>${ps.length?`<div class="product-grid">${ps.map(productCard).join('')}</div>`:`<div class="card empty"><b>暫時沒有符合條件的家具</b>調整篩選，或設定同款二手家具上架提醒。<div style="margin-top:15px">${btn('設定提醒','watch','outline sm')}</div></div>`}</div><div class="mapbox"><div class="mapbox-head"><b>台中 · 附近家具分布</b><span class="tag grey">位置示意</span></div><div class="mapcanvas">${mapSVG()}${ps.map(p=>`<button class="pin ${state.selectedProduct===p.id?'active':''}" style="left:${p.px}%;top:${p.py}%" data-act="mapPin" data-id="${p.id}">${money(p.price).replace('NT$ ','$')}</button>`).join('')}</div>${(()=>{const p=ps.find(p=>p.id===state.selectedProduct)||ps[0];return p?`<div class="mapselect"><span><b style="font-size:13px">${e(p.name)}</b><br><small class="fine">${e(p.landmark)} · ${money(p.price)}</small></span>${btn('查看商品','product','outline sm',`data-id="${p.id}"`)}</div>`:''})()}<div class="mapfoot"><small>${ic('shield',13)} 公開僅為概略地標；預約驗貨經賣家同意後，才提供必要地址。</small></div></div></div><div class="section" style="padding-bottom:0"><div class="card cardpad between"><div><span class="tag gold">二手家具上架提醒</span><h3 style="margin:10px 0 4px">還沒找到喜歡的型號？</h3><p class="sub" style="margin:0">追蹤 IKEA 型號，附近有符合條件的二手商品就能收到通知（模擬）。</p></div>${btn('設定提醒','watch','bluebtn')}</div></div></div>`}
 function details(){const p=state.products.find(x=>x.id===state.selectedProduct)||state.products[0];if(!p)return browse();return `<div class="wrap"><div class="page-title" style="padding-bottom:4px"><button class="minor-link" data-act="browse">${ic('back',14)} 返回探索二手家具</button></div><div class="detailgrid"><div><div class="detailimg">${cardPic(p)}</div><div class="notice" style="margin-top:14px">商品圖片與價格僅為展示用；真實交易應以賣家實拍照片與現場檢查為準。</div></div><div class="detailside"><span class="tag green">${p.grade} 級 · ${p.grade==='A'?'近全新':'良好可用'}</span><h1>${e(p.name)}</h1><div class="fine">IKEA ${e(p.model)} · 使用 ${e(p.years)} 年</div><div class="detailprice">${money(p.price)}</div><div class="softbox"><b style="font-size:13px">公開的家具狀態</b><p class="sub" style="margin:5px 0 0">${e(p.condition)}</p></div><div class="specrow"><span>所在位置</span><b>${e(p.landmark)}（非精確位置）</b></div><div class="specrow"><span>參考原價</span><b>${money(p.original)}（示意）</b></div><div class="specrow"><span>家具尺寸</span><b>${e(p.size)}</b></div><div class="specrow"><span>搬運條件</span><b>${e(p.pick)}</b></div><div class="specrow"><span>評級來源</span><b>平台模擬初評，非 IKEA 實品認證</b></div><div class="detailactions">${btn('提出議價／預約驗貨','offer')}${btn(state.favs.includes(p.id)?'♥ 已收藏':'♡ 收藏家具','heart','outline',`data-id="${p.id}"`)}</div><div style="margin-top:10px">${btn('聯繫賣家 · 站內訊息','openChat','outline block')}</div><div class="info" style="margin-top:17px">先與賣家約定驗貨，經同意後再分享取貨地址。現場確認家具後，才進入平台付款及交接流程。</div></div></div></div>`}
+// 家具狀況：依實際使用情境分組，支援複選、取消與其他說明。
+// 僅供提案原型依賣家填寫資料示範分流，不代表 AI 已辨識照片。
+const ISSUE_OPTIONS={
+ none:'無明顯瑕疵',
+ scratch:'輕微刮痕',
+ stain:'污漬／泛黃',
+ paint:'明顯刮傷／掉漆',
+ peeling:'貼皮翹起／表面破損',
+ parts:'缺少螺絲／配件',
+ function:'抽屜／門片功能異常',
+ unstable:'結構搖晃／變形',
+ mold:'發霉／受潮／明顯異味',
+ other:'其他'
+};
+const ISSUE_GROUPS=[
+ ['外觀狀況',['scratch','stain','paint','peeling']],
+ ['零件與功能',['parts','function']],
+ ['安全與衛生',['unstable','mold']]
+];
+function issueGrade(items=[]){
+ if(items.some(v=>['unstable','mold'].includes(v)))return 'D';
+ if(items.some(v=>['peeling','parts','function'].includes(v)))return 'C';
+ if(items.some(v=>['scratch','stain','paint'].includes(v)))return 'B';
+ return 'A';
+}
+function issueText(items=[],other=''){
+ const result=items.filter(v=>v!=='none'&&v!=='other').map(v=>ISSUE_OPTIONS[v]).filter(Boolean);
+ if(items.includes('other'))result.push('其他：'+String(other||'').trim());
+ return result.join('、')||'無明顯瑕疵';
+}
+function issueButton(value,items){
+ const active=items.includes(value);
+ return `<button type="button" class="${active?'active':''}" aria-pressed="${active}" data-act="issueToggle" data-value="${value}">${ISSUE_OPTIONS[value]}</button>`;
+}
+
 function previewData(kind){
- if(kind==='B')state.draft={name:'BILLY 白色書櫃',model:'BILLY',type:'收納',original:2990,years:3,grade:'B',issue:'scratch',city:'臺中市',area:'西屯區',img:IMAGES.shelf};
- if(kind==='C')state.draft={name:'MALM 三抽櫃',model:'MALM',type:'收納',original:2990,years:4,grade:'C',issue:'repair',city:'臺中市',area:'北屯區',img:IMAGES.malm};
- if(kind==='D')state.draft={name:'LACK 邊桌',model:'LACK',type:'桌椅',original:699,years:5,grade:'D',issue:'danger',city:'臺中市',area:'西區',img:IMAGES.table};
+ if(kind==='B')state.draft={name:'BILLY 白色書櫃',model:'BILLY',type:'收納',original:2990,years:3,grade:'B',issues:['scratch'],issueOther:'',city:'臺中市',area:'西屯區',img:IMAGES.shelf};
+ if(kind==='C')state.draft={name:'MALM 三抽櫃',model:'MALM',type:'收納',original:2990,years:4,grade:'C',issues:['function'],issueOther:'',city:'臺中市',area:'北屯區',img:IMAGES.malm};
+ if(kind==='D')state.draft={name:'LACK 邊桌',model:'LACK',type:'桌椅',original:699,years:5,grade:'D',issues:['unstable'],issueOther:'',city:'臺中市',area:'西區',img:IMAGES.table};
  state.analysis=null;state.demoPrice=null;state.vision=null;state.labelVision=null;state.demoMode=false;state.visionRunId++;
  render();showToast(`已載入 ${kind} 級家具示範，可點擊『開始 AI 智慧健檢與估價』體驗`);
 }
@@ -175,21 +221,22 @@ function calcAnalysis(){
   if(!['A','B','C','D'].includes(f.grade)){
     showToast('請先選擇賣家自行評級');return;
   }
-  if(!['none','scratch','repair','danger'].includes(f.issue)){
-    showToast('請先選擇家具目前的狀況');return;
-  }
+  const items=Array.isArray(f.issues)?f.issues:[];
+  if(!items.length){showToast('請先選擇至少一項家具狀況');return;}
+  if(items.includes('other')&&!String(f.issueOther||'').trim()){showToast('已選擇「其他」，請補充家具狀況');return;}
+  if(items.includes('none')&&items.length>1){showToast('「無明顯瑕疵」不可與其他狀況同時選擇');return;}
   if(!Number.isFinite(original)||original<=0||!Number.isFinite(years)||years<0||years>30){
     showToast('請填寫正確的購買價格與使用年數');return;
   }
   // Proposal visualization only: grade derived from user-entered condition,
   // NOT from uploaded image. Preserve conservative self-reported safety signals.
-  const conditionGrade=({none:'A',scratch:'B',repair:'C',danger:'D'})[f.issue];
+  const conditionGrade=items.every(v=>v==='other')?f.grade:issueGrade(items);
   const grade='ABCD'[Math.max('ABCD'.indexOf(conditionGrade),'ABCD'.indexOf(f.grade))];
   const ratio=({A:.70,B:.50,C:.25,D:.05})[grade];
   const base=original*ratio*Math.pow(.94,years);
   const lo=Math.max(0,Math.round(base*.85/50)*50);
   const hi=Math.max(lo,Math.round(base*1.25/50)*50);
-  state.analysis={grade,photoGrade:null,lo,hi,diff:grade!==f.grade,basis:'proposal-mock',conditionGrade};
+  state.analysis={grade,photoGrade:null,lo,hi,diff:grade!==f.grade,basis:'proposal-mock',conditionGrade,needsReview:items.includes('other'),issueSummary:issueText(items,f.issueOther)};
   state.demoPrice=null;
   render();
   showToast('示範評估完成，可查看評級及建議售價');
@@ -253,6 +300,7 @@ function sellerForm(){
         <div class="ai-demo-price">${money(a.lo)}–${money(a.hi).replace('NT$ ','')}</div>
         <div class="ai-demo-caption">綜合商品原價、使用年限及家具狀態</div>
       `:`<div class="ai-demo-callout"><b>${a.grade==='C'?'建議先維修，再重新估價':'暫不建議直接販售'}</b><div class="fine">${a.grade==='C'?'可申請維修評估，修復後再重新評級。':'建議人工確認安全性，或媒合合作回收。'}</div></div>`}
+      ${a.needsReview?'<p class="fine" style="margin-top:9px">「其他」狀況尚待人工確認，分級與價格僅供示意。</p>':''}
       ${a.diff?`<div class="info" style="margin-top:13px">分級與自評不同，可以申請人工複核。</div>${btn('申請人工複核','appeal','outline sm','style="margin-top:9px"')}`:''}
       <div class="rule"></div>
       <h3 style="margin-bottom:10px">下一步建議</h3>
@@ -276,7 +324,13 @@ function sellerForm(){
         <div class="fieldrow"><div class="formgroup"><label>家具類別</label><select data-draft="type">${IKEA_CATEGORIES.map(x=>`<option ${x===f.type?'selected':''}>${x}</option>`).join('')}</select></div><div class="formgroup"><label>所在縣市</label><select data-draft="city">${Object.keys(TW_AREAS).map(x=>`<option ${x===(f.city||'臺中市')?'selected':''}>${x}</option>`).join('')}</select></div></div>
         <div class="formgroup"><label>所在行政區</label><select data-draft="area">${(TW_AREAS[f.city||'臺中市']||[]).map(x=>`<option ${x===f.area?'selected':''}>${x}</option>`).join('')}</select></div>
         <div class="formgroup"><label>賣家自行評級</label><select data-draft="grade"><option value="" ${!f.grade?'selected':''}>選擇自評等級</option>${[['A','A｜近全新'],['B','B｜良好可用'],['C','C｜需維修'],['D','D｜安全疑慮']].map(([v,t])=>`<option value="${v}" ${f.grade===v?'selected':''}>${t}</option>`).join('')}</select></div>
-        <div class="formgroup"><label>目前家具狀況</label><div class="issuechoices">${[['none','無明顯瑕疵'],['scratch','輕微刮痕'],['repair','零件／功能需維修'],['danger','不穩定／發霉／安全疑慮']].map(([v,l])=>`<button type="button" class="${f.issue===v?'active':''}" data-act="issue" data-value="${v}">${l}</button>`).join('')}</div></div>
+        <div class="formgroup furniture-condition"><label>目前家具狀況 <span class="fine">（可複選，再點一次取消）</span></label>
+          <div class="issue-none">${issueButton('none',f.issues||[])}</div>
+          ${ISSUE_GROUPS.map(([title,keys])=>`<div class="issue-group"><span class="issue-group-title">${title}</span><div class="issuechoices">${keys.map(key=>issueButton(key,f.issues||[])).join('')}</div></div>`).join('')}
+          <div class="issue-group"><span class="issue-group-title">其他補充</span><div class="issuechoices">${issueButton('other',f.issues||[])}</div></div>
+          ${(f.issues||[]).includes('other')?`<input class="issue-other" data-draft="issueOther" value="${e(f.issueOther||'')}" maxlength="180" placeholder="請描述其他狀況，例如：底部變色、局部變形" aria-label="其他家具狀況說明">`:''}
+          <p class="fine condition-hint">「無明顯瑕疵」與其他選項互斥；評級將以較嚴重的勾選狀況示範。</p>
+        </div>
         ${btn(`${ic('sparkle',18)} 開始 AI 智慧健檢與估價`,'analyze','yellowbtn block')}
         <p class="tiny-demo">＊此為提案示範功能，實際 AI 圖片辨識及估價服務尚未啟用。</p>
         <div class="back-bottom"><button class="step-back" type="button" data-act="goBack">← 上一步</button></div>
@@ -305,9 +359,23 @@ function listenFields(){document.querySelectorAll('[data-draft]').forEach(el=>{e
 function render(){document.body.classList.remove('mode-buyer','mode-seller','mode-official');document.body.classList.add(state.page==='messages'&&state.chatChannel==='official'?'mode-official':state.role==='seller'?'mode-seller':state.role==='buyer'?'mode-buyer':'mode-official');topNav();const page=state.page==='entry'?entry():state.page==='buyerHome'?buyerHome():state.page==='sellerHome'?sellerHome():state.page==='browse'?browse():state.page==='detail'?details():state.page==='sell'?sellerForm():state.page==='services'?services():state.page==='messages'?messages():cases();const back=state.role&&state.page!=='entry'?'<div class="wrap back-strip"><button type="button" class="step-back" data-act="goBack">← 上一步</button></div>':'';document.getElementById('app').innerHTML=back+page;listenFields()}
 function handleAction(el,event){const action=el.dataset.act,id=el.dataset.id;if(!action)return;const navPages=['buyerHome','sellerHome','browse','sell','services','cases','detail','messages'];if(navPages.includes(action)){pageGo(action);return}
 switch(action){case 'fontSize':{const size=el.dataset.size;if(!['small','medium','large'].includes(size))break;state.fontSize=size;try{localStorage.setItem('rehome_v2_font',size)}catch{}topNav();break}case 'goBack':{const previous=state.history.pop()||((state.page==='buyerHome'||state.page==='sellerHome')?'entry':(state.role==='buyer'?'buyerHome':'sellerHome'));state.page=previous;if(previous==='entry')state.role=null;state.modal=null;render();window.scrollTo({top:0,behavior:'instant'});break}case 'chatPeer':state.chatChannel='peer';render();break;case 'chatOfficial':state.chatChannel='official';render();break;case 'openChat':state.chatChannel='peer';state.history.push(state.page);state.page='messages';render();window.scrollTo({top:0,behavior:'instant'});break;case 'chatSelect':state.selectedProduct=Number(id);render();break;case 'recognizeType':recognizeFurniture('type');break;case 'demoEstimate':calcDemoPrice();break;case 'recognizeLabel':recognizeFurniture('label');break;case 'applyVision':{const model=el.dataset.value;if(!IKEA_FAMILIES[model])break;state.draft.model=model;state.draft.type=IKEA_FAMILIES[model];state.draft.name=model+' 二手家具';state.analysis=null;state.vision=null;render();showToast('已帶入候選型號，請確認家具名稱與原價');break}case 'nav':pageGo(el.dataset.page);break;case 'entry':case 'switch':state.history=[];state.role=null;pageGo('entry');break;case 'buyer':setRole('buyer');break;case 'seller':setRole('seller');break;case 'menu':state.mobile=!state.mobile;topNav();break;case 'casesEntry':showToast('請先選擇買家或賣家身分，再從「案件進度」查看對應案件。');break;case 'product':state.selectedProduct=Number(id);pageGo('detail');break;case 'heart':{event.stopPropagation();const pid=Number(id||state.selectedProduct);state.favs=state.favs.includes(pid)?state.favs.filter(x=>x!==pid):[...state.favs,pid];save();render();showToast(state.favs.includes(pid)?'已加入收藏':'已取消收藏');break}
-case 'mapPin':state.selectedProduct=Number(id);render();break;case 'clear':state.filters={query:'',type:'all',grade:'all',max:'all'};render();break;case 'watch':case 'offer':case 'list':case 'appeal':case 'repair':case 'buyback':case 'recycle':case 'logistics':openModal(action);break;case 'issue':state.draft.issue=el.dataset.value;state.analysis=null;state.demoPrice=null;render();break;case 'sample':previewData(el.dataset.kind);break;case 'analyze':calcAnalysis();break;case 'selectCase':state.selectedCase=id;render();break;case 'nextCase':{const c=state.cases.find(c=>c.id===id);if(c){c.step=Math.min(STAGES[c.type].length-1,c.step+1);save();render();showToast(`進度已更新：${STAGES[c.type][c.step]}（示範）`)}break}
+case 'mapPin':state.selectedProduct=Number(id);render();break;case 'clear':state.filters={query:'',type:'all',grade:'all',max:'all'};render();break;case 'watch':case 'offer':case 'list':case 'appeal':case 'repair':case 'buyback':case 'recycle':case 'logistics':openModal(action);break;case 'issueToggle':{
+ const value=el.dataset.value;
+ let items=Array.isArray(state.draft.issues)?[...state.draft.issues]:[];
+ if(items.includes(value)){
+   items=items.filter(x=>x!==value);
+   if(value==='other')state.draft.issueOther='';
+ }else if(value==='none'){
+   items=['none'];state.draft.issueOther='';
+ }else{
+   items=items.filter(x=>x!=='none');items.push(value);
+ }
+ state.draft.issues=items;
+ state.analysis=null;state.demoPrice=null;
+ render();break;
+}case 'sample':previewData(el.dataset.kind);break;case 'analyze':calcAnalysis();break;case 'selectCase':state.selectedCase=id;render();break;case 'nextCase':{const c=state.cases.find(c=>c.id===id);if(c){c.step=Math.min(STAGES[c.type].length-1,c.step+1);save();render();showToast(`進度已更新：${STAGES[c.type][c.step]}（示範）`)}break}
 case 'close':closeModal();break;case 'backdrop':if(event.target===el)closeModal();break;case 'offerSubmit':{const p=state.products.find(p=>p.id===state.selectedProduct);const amt=Number(document.getElementById('offer-price')?.value);if(!amt||amt<=0){showToast('請先輸入有效的議價金額');return}addCase('trade',p.name,'both',amt);break}
-case 'listSubmit':{const f=state.draft,a=state.analysis,price=Number(document.getElementById('my-price')?.value);if(!a||!['A','B'].includes(a.grade)){showToast('請先完成符合條件的家具評估');return}if(!Number.isFinite(price)||price<=0){showToast('請輸入有效的刊登價格');return}const p={id:Date.now(),name:f.name||f.model+' 二手家具',model:f.model,type:f.type,price,original:Number(f.original),years:Number(f.years),grade:a.grade,city:f.city||'臺中市',area:f.area,landmark:(f.city||'臺中市')+f.area+'附近地標',px:53,py:53,condition:({none:'無明顯瑕疵',scratch:'輕微刮痕，功能正常'})[f.issue]||'以實物為準',size:'請與賣家確認',pick:'自行取貨或付費合作物流',img:f.model==='MALM'?'malm':f.model==='KIVIK'?'sofa':f.model==='LISABO'?'table':'shelf',customImg:f.img||''};state.products.unshift(p);save();addCase('listing',p.name,'seller');break}
+case 'listSubmit':{const f=state.draft,a=state.analysis,price=Number(document.getElementById('my-price')?.value);if(!a||!['A','B'].includes(a.grade)){showToast('請先完成符合條件的家具評估');return}if(!Number.isFinite(price)||price<=0){showToast('請輸入有效的刊登價格');return}const p={id:Date.now(),name:f.name||f.model+' 二手家具',model:f.model,type:f.type,price,original:Number(f.original),years:Number(f.years),grade:a.grade,city:f.city||'臺中市',area:f.area,landmark:(f.city||'臺中市')+f.area+'附近地標',px:53,py:53,condition:issueText(f.issues||[],f.issueOther),size:'請與賣家確認',pick:'自行取貨或付費合作物流',img:f.model==='MALM'?'malm':f.model==='KIVIK'?'sofa':f.model==='LISABO'?'table':'shelf',customImg:f.img||''};state.products.unshift(p);save();addCase('listing',p.name,'seller');break}
 case 'appealSubmit':{if(!document.getElementById('appeal-reason')?.value.trim()){showToast('請填寫申覆原因');return}addCase('appeal',state.draft.name||state.draft.model+' 家具評級','seller');break}
 case 'serviceSubmit':{const type=el.dataset.kind;const item=document.getElementById('service-name')?.value.trim()||state.draft.name||'IKEA 家具';if(type==='logistics'){closeModal();showToast('已記錄示範物流詢問；實際報價需合作業者確認');return}addCase(type,item,state.role);break}
 case 'watchSubmit':{const model=document.getElementById('watch-model').value,area=document.getElementById('watch-area').value;state.watches.push({model,area});save();closeModal();showToast(`已設定 ${model} · ${area} 的模擬上架提醒`);break}
